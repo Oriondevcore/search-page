@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Search | SupaTraxx Karaoke</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-purple: #d238ff;
+            --dark-bg: #0a0014;
+            --dark-purple: #1a0b2e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--dark-purple) 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            text-align: center;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px rgba(5, 217, 232, 0.8);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 1rem;
+            margin-bottom: 40px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        #searchInput {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            font-size: 1.2rem;
+            font-family: 'Space Mono', monospace;
+            border-radius: 12px;
+            border: 2px solid var(--neon-cyan);
+            background: rgba(26, 11, 46, 0.8);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        #searchInput:focus {
+            outline: none;
+            box-shadow: 0 0 30px rgba(5, 217, 232, 0.5);
+            border-color: var(--neon-pink);
+        }
+        
+        #searchInput::placeholder {
+            color: #666;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            pointer-events: none;
+        }
+        
+        .loading {
+            text-align: center;
+            color: var(--neon-cyan);
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+        
+        .stats {
+            text-align: center;
+            color: var(--neon-cyan);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(5, 217, 232, 0.1);
+            border-radius: 8px;
+        }
+        
+        .results {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .song-card {
+            padding: 20px;
+            background: rgba(26, 11, 46, 0.6);
+            border-left: 4px solid var(--neon-cyan);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .song-card:hover {
+            background: rgba(26, 11, 46, 0.9);
+            border-left-color: var(--neon-pink);
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(5, 217, 232, 0.3);
+        }
+        
+        .song-artist {
+            font-size: 1.3rem;
+            color: var(--neon-pink);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .song-title {
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .song-meta {
+            font-size: 0.85rem;
+            color: #999;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .song-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .request-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .request-btn:hover {
+            background: var(--neon-cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px rgba(5, 217, 232, 0.5);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .error {
+            text-align: center;
+            color: var(--neon-pink);
+            padding: 20px;
+            background: rgba(255, 42, 109, 0.1);
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            #searchInput {
+                font-size: 1rem;
+                padding: 15px 50px 15px 15px;
+            }
+            
+            .song-artist {
+                font-size: 1.1rem;
+            }
+            
+            .song-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Song Search</h1>
+        <div class="subtitle" id="subtitle">Loading library...</div>
+        
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search by artist or song title..."
+                autocomplete="off"
+            />
+            <span class="search-icon">🔍</span>
+        </div>
+        
+        <div id="stats" class="stats" style="display: none;"></div>
+        <div id="loading" class="loading" style="display: none;">Searching...</div>
+        <div id="results" class="results"></div>
+    </div>
+    
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        
+        const API_URL = 'https://11f50387-dbbd-47d0-98fd-d0ce61af910f.workers.dev'; // UPDATE THIS
+        const WHATSAPP_NUMBER = '27724971810'; // Graham's number
+        
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
+        
+        const searchInput = document.getElementById('searchInput');
+        const subtitle = document.getElementById('subtitle');
+        const statsDiv = document.getElementById('stats');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        
+        // ============================================================
+        // STATE
+        // ============================================================
+        
+        let debounceTimer;
+        let totalSongs = 0;
+        
+        // ============================================================
+        // FUNCTIONS
+        // ============================================================
+        
+        function showLoading() {
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+        }
+        
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+        }
+        
+        function showError(message) {
+            resultsDiv.innerHTML = `
+                <div class="error">
+                    ⚠️ ${message}
+                </div>
+            `;
+        }
+        
+        function showEmptyState(message) {
+            resultsDiv.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🎤</div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        function requestSong(artist, title) {
+            const message = `Hi Graham, I'd like to sing: ${artist} - ${title}`;
+            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        function renderResults(data) {
+            hideLoading();
+            
+            if (data.count === 0) {
+                showEmptyState('No songs found. Try a different search term.');
+                statsDiv.style.display = 'none';
+                return;
+            }
+            
+            statsDiv.style.display = 'block';
+            statsDiv.textContent = `Found ${data.count.toLocaleString()} song${data.count === 1 ? '' : 's'}`;
+            
+            const html = data.results.map(song => `
+                <div class="song-card">
+                    <div class="song-artist">${escapeHtml(song.artist)}</div>
+                    <div class="song-title">${escapeHtml(song.title)}</div>
+                    <div class="song-meta">
+                        <span>📁 ${escapeHtml(song.category || 'General')}</span>
+                        <span>🎵 ${escapeHtml(song.catalog)}-${escapeHtml(song.track)}</span>
+                    </div>
+                    <button 
+                        class="request-btn" 
+                        onclick="requestSong('${escapeHtml(song.artist)}', '${escapeHtml(song.title)}')"
+                    >
+                        Request via WhatsApp
+                    </button>
+                </div>
+            `).join('');
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function search(query) {
+            if (query.length < 2) {
+                resultsDiv.innerHTML = '';
+                statsDiv.style.display = 'none';
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                
+                const data = await response.json();
+                renderResults(data);
+                
+            } catch (err) {
+                hideLoading();
+                showError('Search error. Please try again or check your connection.');
+                console.error('Search error:', err);
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/stats`);
+                const data = await response.json();
+                
+                totalSongs = data.totalSongs;
+                subtitle.textContent = `${totalSongs.toLocaleString()} songs available`;
+                
+            } catch (err) {
+                subtitle.textContent = 'Library loaded';
+                console.error('Stats error:', err);
+            }
+        }
+        
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const query = e.target.value.trim();
+            debounceTimer = setTimeout(() => search(query), 300);
+        });
+        
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        
+        loadStats();
+        searchInput.focus();
+        
+        // Make requestSong globally available
+        window.requestSong = requestSong;
+    </script>
+</body>
+</html>
